@@ -12,6 +12,7 @@ import (
 	"gopkg.in/editorconfig/editorconfig-core-go.v1"
 	"gopkg.in/macaron.v1"
 
+	"github.com/Unknwon/com"
 	"github.com/gogs/git-module"
 
 	"github.com/gogs/gogs/models"
@@ -175,15 +176,18 @@ func RepoAssignment(pages ...bool) macaron.Handler {
 				(!(isIssuesPage || isWikiPage) ||
 					(isIssuesPage && !repo.CanGuestViewIssues()) ||
 					(isWikiPage && !repo.CanGuestViewWiki())) {
-				switch {
-				case repo.CanGuestViewIssues():
-					c.Redirect(repo.Link() + "/issues")
-				case repo.CanGuestViewWiki():
-					c.Redirect(repo.Link() + "/wiki")
-				default:
-					c.NotFound()
+				//by jkp,for public issue wiki of private repo to watch and star by
+				if !com.IsSliceContainsStr([]string{"watch", "unwatch", "star", "unstar"}, c.Params("action")) {
+					switch {
+					case repo.CanGuestViewIssues():
+						c.Redirect(repo.Link() + "/issues")
+					case repo.CanGuestViewWiki():
+						c.Redirect(repo.Link() + "/wiki")
+					default:
+						c.NotFound()
+					}
+					return
 				}
-				return
 			}
 
 			// Response 404 if user is on completely private repository or possible accessible page but owner doesn't enabled
