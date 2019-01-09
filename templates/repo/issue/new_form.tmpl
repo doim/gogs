@@ -32,6 +32,20 @@
 
 	<div class="four wide column">
 		<div class="ui segment metas">
+
+			<div class="field {{if .Err_Deadline}}error{{end}}">
+				<label>
+					{{.i18n.Tr "repo.milestones.due_date"}}
+					<a id="clear-date" href="#">{{.i18n.Tr "repo.milestones.clear"}}</a>
+				</label>
+				<input id="deadline" name="deadline" value="{{.deadline}}">
+			</div>
+			<div class="field">
+				<input class="milestone datepicker" data-lang="{{.DateLang}}" data-start-date="{{.deadline}}">
+			</div>
+
+			<div class="ui divider"></div>
+
 			<input id="label_ids" name="label_ids" type="hidden" value="{{.label_ids}}">
 			<div class="ui {{if not .Labels}}disabled{{end}} floating jump select-label dropdown">
 				<span class="text">
