@@ -196,7 +196,7 @@ func runWeb(c *cli.Context) error {
 	}, ignSignIn)
 	m.Combo("/install", routes.InstallInit).Get(routes.Install).
 		Post(bindIgnErr(form.Install{}), routes.InstallPost)
-	m.Get("/^:type(issues|pulls)$", reqSignIn, user.Issues)
+	m.Get("/^:type(issues|pulls|issuespool)$", reqSignIn, user.Issues)
 
 	// ***** START: User *****
 	m.Group("/user", func() {

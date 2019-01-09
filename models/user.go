@@ -29,6 +29,7 @@ import (
 	"github.com/gogs/git-module"
 	api "github.com/gogs/go-gogs-client"
 
+	"github.com/go-xorm/builder"
 	"github.com/gogs/gogs/models/errors"
 	"github.com/gogs/gogs/pkg/avatar"
 	"github.com/gogs/gogs/pkg/setting"
@@ -423,6 +424,46 @@ func (u *User) GetRepositories(page, pageSize int) (err error) {
 		PageSize: pageSize,
 	})
 	return err
+}
+func (u *User) GetPoolRepositories(page, pageSize int) ([]*Repository, int64, error) {
+	//user's org
+	orgIDs := make([]int64, 0, 10)
+	sess := x.Table("org_user").Where("uid = ?", u.ID)
+	err := sess.Distinct("org_id").Find(&orgIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get org by  user : %v", err)
+	}
+
+	//watch repo
+	watchRepoIDs := make([]int64, 0, 20)
+	sess = x.Table("watch").Where("user_id = ?", u.ID)
+	err = sess.Distinct("repo_id").Find(&watchRepoIDs)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get watch repositories by  user : %v", err)
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+	repos := make([]*Repository, 0, pageSize)
+	if err = x.Where(builder.In("owner_id", orgIDs)).
+		And("is_private = ?", false).
+		Or(builder.In("id", watchRepoIDs)).
+		Desc("updated_unix").
+		Limit(pageSize, (page-1)*pageSize).
+		Find(&repos); err != nil {
+		return nil, 0, fmt.Errorf("get user repositories: %v", err)
+	}
+
+	repoCount, err := x.Where(builder.In("owner_id", orgIDs)).
+		And("is_private = ?", false).
+		Or(builder.In("id", watchRepoIDs)).
+		Count(new(Repository))
+	if err != nil {
+		return nil, 0, fmt.Errorf("count user repositories: %v", err)
+	}
+
+	return repos, repoCount, nil
 }
 
 // GetRepositories returns mirror repositories that user owns, including private repositories.

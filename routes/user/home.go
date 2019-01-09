@@ -166,6 +166,7 @@ func Dashboard(c *context.Context) {
 
 func Issues(c *context.Context) {
 	isPullList := c.Params(":type") == "pulls"
+	paraType := c.Params(":type") //by jkp
 	if isPullList {
 		c.Data["Title"] = c.Tr("pull_requests")
 		c.Data["PageIsPulls"] = true
@@ -213,18 +214,27 @@ func Issues(c *context.Context) {
 		userRepoIDs []int64
 		showRepos   = make([]*models.Repository, 0, 10)
 	)
-	if ctxUser.IsOrganization() {
-		repos, _, err = ctxUser.GetUserRepositories(c.User.ID, 1, ctxUser.NumRepos)
+	if !(paraType == "issuespool") {
+		if ctxUser.IsOrganization() {
+			repos, _, err = ctxUser.GetUserRepositories(c.User.ID, 1, ctxUser.NumRepos)
+			if err != nil {
+				c.Handle(500, "GetRepositories", err)
+				return
+			}
+		} else {
+			if err := ctxUser.GetRepositories(1, c.User.NumRepos); err != nil {
+				c.Handle(500, "GetRepositories", err)
+				return
+			}
+			repos = ctxUser.Repos
+		}
+	} else {
+		repos, _, err = ctxUser.GetPoolRepositories(1, ctxUser.NumRepos)
 		if err != nil {
 			c.Handle(500, "GetRepositories", err)
 			return
 		}
-	} else {
-		if err := ctxUser.GetRepositories(1, c.User.NumRepos); err != nil {
-			c.Handle(500, "GetRepositories", err)
-			return
-		}
-		repos = ctxUser.Repos
+
 	}
 
 	userRepoIDs = make([]int64, 0, len(repos))
