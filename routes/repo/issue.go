@@ -421,6 +421,9 @@ func NewIssuePost(c *context.Context, f form.NewIssue) {
 	c.Data["PageIsIssueList"] = true
 	c.Data["RequireHighlightJS"] = true
 	c.Data["RequireSimpleMDE"] = true
+	c.Data["RequireDatetimepicker"] = true
+	c.Data["DateLang"] = setting.DateLang(c.Locale.Language())
+
 	renderAttachmentSettings(c)
 
 	labelIDs, milestoneID, assigneeID := ValidateRepoMetas(c, f)
@@ -509,6 +512,9 @@ func UploadIssueAttachment(c *context.Context) {
 func viewIssue(c *context.Context, isPullList bool) {
 	c.Data["RequireHighlightJS"] = true
 	c.Data["RequireDropzone"] = true
+	c.Data["RequireDatetimepicker"] = true
+	c.Data["DateLang"] = setting.DateLang(c.Locale.Language())
+
 	renderAttachmentSettings(c)
 
 	index := c.ParamsInt64(":index")
@@ -698,6 +704,41 @@ func getActionIssue(c *context.Context) *models.Issue {
 	}
 
 	return issue
+}
+
+func UpdateIssueDeadline(c *context.Context) {
+	issue := getActionIssue(c)
+	if c.Written() {
+		return
+	}
+
+	if !c.IsLogged || (!issue.IsPoster(c.User.ID) && !c.Repo.IsWriter()) {
+		c.Error(403)
+		return
+	}
+
+	date := c.QueryTrim("date")
+	if len(date) == 0 {
+		c.Error(204)
+		return
+	}
+
+	deadline, err := time.ParseInLocation("2006-01-02", date, time.Local)
+	if err != nil {
+		c.Data["Err_Deadline"] = true
+		//		c.RenderWithErr(c.Tr("repo.milestones.invalid_due_date_format"), ISSUES_VIEW, &f)
+		c.Handle(500, "ChangeDeadline", err)
+		return
+	}
+
+	if err := issue.ChangeDeadline(c.User, deadline); err != nil {
+		c.Handle(500, "ChangeDeadline", err)
+		return
+	}
+
+	c.JSON(200, map[string]interface{}{
+		"deadline": issue.Deadline,
+	})
 }
 
 func UpdateIssueTitle(c *context.Context) {

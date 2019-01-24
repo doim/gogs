@@ -521,6 +521,7 @@ func runWeb(c *cli.Context) error {
 		// So they can apply their own enable/disable logic on routers.
 		m.Group("/issues", func() {
 			m.Group("/:index", func() {
+				m.Post("/deadline", repo.UpdateIssueDeadline)
 				m.Post("/label", repo.UpdateIssueLabel)
 				m.Post("/milestone", repo.UpdateIssueMilestone)
 				m.Post("/assignee", repo.UpdateIssueAssignee)

@@ -274,6 +274,21 @@
 
 	<div class="four wide column">
 		<div class="ui segment metas">
+			<div class="field {{if .Err_Deadline}}error{{end}}">
+				<label>
+					{{.i18n.Tr "repo.milestones.due_date"}}
+					<a id="clear-date" href="#">{{.i18n.Tr "repo.milestones.clear"}}</a>
+					<a id="save-date" href="#" data-action="update" data-update-url="{{$.RepoLink}}/issues/{{$.Issue.Index}}/deadline" data-value="{{.deadline}}">{{.i18n.Tr "repo.issues.save"}}</a>
+				</label>
+				
+				<input id="deadline" name="deadline" value="{{.deadline}}">
+			</div>
+			<div class="field">
+				<input class="issue datepicker" data-lang="{{.DateLang}}" data-start-date="{{.deadline}}">
+			</div>
+
+			<div class="ui divider"></div>
+
 			<div class="ui {{if not .IsRepositoryWriter}}disabled{{end}} floating jump select-label dropdown">
 				<span class="text">
 					<strong>{{.i18n.Tr "repo.issues.new.labels"}}</strong>

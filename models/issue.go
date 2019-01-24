@@ -509,6 +509,16 @@ func (issue *Issue) ChangeStatus(doer *User, repo *Repository, isClosed bool) (e
 	return nil
 }
 
+func (issue *Issue) ChangeDeadline(doer *User, date time.Time) (err error) {
+	//	oldTitle := issue.Deadline
+	issue.Deadline = date
+	if err = UpdateIssueCols(issue, "deadline_unix"); err != nil {
+		return fmt.Errorf("UpdateIssueCols: %v", err)
+	}
+
+	return nil
+}
+
 func (issue *Issue) ChangeTitle(doer *User, title string) (err error) {
 	oldTitle := issue.Title
 	issue.Title = title

@@ -3,6 +3,61 @@
 var csrf;
 var suburl;
 
+function initDatePicker(){
+	if ($('.repository.new.milestone').length > 0) {
+        var $datepicker = $('.milestone.datepicker');
+        $datepicker.datetimepicker({
+            lang: $datepicker.data('lang'),
+            inline: true,
+            timepicker: false,
+            startDate: $datepicker.data('start-date'),
+            formatDate: 'Y-m-d',
+            onSelectDate: function (ct) {
+                $('#deadline').val(ct.dateFormat('Y-m-d'));
+            }
+        });
+        $('#clear-date').click(function () {
+            $('#deadline').val('');
+            return false;
+        });
+    }
+	if ($('.repository.new.issue').length > 0  || $('.repository.view.issue').length > 0) {
+        var $datepicker = $('.issue.datepicker');
+        $datepicker.datetimepicker({
+            lang: $datepicker.data('lang'),
+            inline: true,
+            timepicker: false,
+            startDate: $datepicker.data('start-date'),
+            formatDate: 'Y-m-d',
+            onSelectDate: function (ct) {
+                $('#deadline').val(ct.dateFormat('Y-m-d'));
+            }
+        });
+        $('#clear-date').click(function () {
+            $('#deadline').val('');
+            return false;
+        });
+        var $issueDeadline = $('#save-date');
+        var $editInput = $('#deadline').find('input');
+        $('#save-date').click(function () {
+            if ( $editInput.val() == $issueDeadline.data('value')) {
+                $editInput.val($issueDeadline.data('value'));
+                return false;
+            }
+
+            $.post($(this).data('update-url'), {
+                "date": $editInput.val()
+            	},
+                function (data) {
+                    $editInput.val(data.date);
+                    $issueDeadline.data('value').text(data.date);
+                });
+            return false;
+        });
+    }
+
+}
+
 function initCommentPreviewTab($form) {
     var $tabMenu = $form.find('.tabular.menu');
     $tabMenu.find('.item').tab();
@@ -305,7 +360,8 @@ function initRepository() {
     if ($('.repository.milestones').length > 0) {
 
     }
-    if ($('.repository.new.milestone').length > 0) {
+/*
+   if ($('.repository.new.milestone').length > 0) {
         var $datepicker = $('.milestone.datepicker');
         $datepicker.datetimepicker({
             lang: $datepicker.data('lang'),
@@ -322,6 +378,7 @@ function initRepository() {
             return false;
         });
     }
+*/
 
     // Issues
     if ($('.repository.view.issue').length > 0) {
@@ -1390,6 +1447,7 @@ $(document).ready(function () {
     initOrganization();
     initAdmin();
     initCodeView();
+	initDatePicker();
 
     // Repo clone url.
     if ($('#repo-clone-url').length > 0) {
